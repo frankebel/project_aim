@@ -1,0 +1,18 @@
+%! TeX root = ../thesis.tex
+\begin{tikzpicture}[
+        inner sep=1mm,
+        node distance=5mm,
+    ]
+    % draw sites
+    \node [bath={0.8}, label=right:$b_1$] (b1) {};
+    \node [bath={0.7}, label=right:$b_2$] (b2) [above=of b1] {};
+    \node [bath={0.6}, label=right:$b_3$] (b3) [above=of b2] {};
+    \node [bath half, label=right:$b_4$] (b4) [above=of b3] {};
+    \node [bath={0.4}, label=right:$b_5$] (b5) [above=of b4] {};
+    \node [bath={0.3}, label=right:$b_6$] (b6) [above=of b5] {};
+    \node [bath={0.2}, label=right:$b_7$] (b7) [above=of b6] {};
+    \node [impurity, label=left:$i$] (i) [left=of b4] {};
+    % connect sites
+    \foreach \i in {1,2,...,7}
+    \draw (i.east) -- (b\i.west);
+\end{tikzpicture}

@@ -1,0 +1,55 @@
+%! TeX root = ../thesis.tex
+\begin{tikzpicture}[
+        inner sep=1mm,
+        node distance=5mm,
+    ]
+    % bit component
+    \node [impurity, label=left:$i$] (i) {};
+    \node [bath half, label=right:$b$] (b) [right=of i] {};
+    \node [bath full, label=below:$v_1$] (v1) [below=of b] {};
+    \node [bath full, label=below:$v_L$] (vL) [right=of v1] {};
+    \node [bath empty, label=above:$c_1$] (c1) [above=of b] {};
+    \node [bath empty, label=above:$c_L$] (cL) [right=of c1] {};
+    \coordinate[node distance=20mm, right=of vL] (vhidden);
+    \coordinate[node distance=20mm, right=of cL] (chidden);
+    \node [node distance=14mm] (Hs) [left=of c1] {$\ham_s$};
+    % vector component
+    \node [bath full, label=below:$v_{L+1}$] (vL1) [right=of vhidden] {};
+    \foreach \i [remember=\i as \lasti (initially 1)] in {2,3}
+    \node [bath full] (vL\i) [right=of vL\lasti] {};
+    \node [bath empty, label=above:$c_{L+1}$] (cL1) [right=of chidden] {};
+    \foreach \i [remember=\i as \lasti (initially 1)] in {2,3}
+    \node [bath empty] (cL\i) [right=of cL\lasti] {};
+    \node [node distance=6mm] (Hv) [right=of cL3] {$\ham_v$};
+    % % connect sites
+    \draw (i.east) -- (b.west);
+    \draw (i.south) -- (v1.north west);
+    \draw (b.south) -- (v1.north);
+    \draw(v1.east) -- (vL.west);
+    \draw(c1.east) -- (cL.west);
+    \draw (i.north) -- (c1.south west);
+    \draw (b.north) -- (c1.south);
+    \draw (vL.east) -- (vL1.west);
+    \draw (cL.east) -- (cL1.west);
+    \foreach \i [remember=\i as \lasti (initially 1)] in {2,3}
+        {
+            \draw (vL\lasti.east) -- (vL\i.west);
+            \draw (cL\lasti.east) -- (cL\i.west);
+        }
+    \node (Hmix) [node distance=15mm, right=of b] {$\ham_\text{mix}$};
+    % split box
+    \node [
+        inner sep=6mm,
+        draw,
+        dashed,
+        rectangle,
+        fit=(i) (b) (vL) (cL)
+    ] {};
+    \node [
+        inner sep=6mm,
+        draw,
+        dashed,
+        rectangle,
+        fit=(vL1) (vL3) (cL1) (cL3)
+    ] {};
+\end{tikzpicture}

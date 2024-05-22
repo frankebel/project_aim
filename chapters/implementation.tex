@@ -1,0 +1,381 @@
+%! TeX root = ../thesis.tex
+\chapter{Implementation}
+
+Currently,
+the limiting factor is the lookup of bit patterns inside the dictionary.
+We therefore want to reduce the number of dictionary keys,
+which we implement under the name ``hybrid representation'' (HR).
+
+\section{Hybrid wave function}
+
+For the geometry shown in~\cref{fig:wave-function-split}
+we can define two sectors.
+The first contains all sites on which $\ham_s$ acts,
+the second contains the sites in the two chains of $\ham_v$.
+Given a fixed number of electrons
+we can distribute them over these sectors such that
+for each sector we obtain a set of electronic configurations.
+Every single determinant state can be expressed
+by combining one configuration from each sector:
+$\ket{s_i}$ from $\ham_s$ and $\ket{v_i}$ from $\ham_v$.
+The first sector uses the existing bit representation (BR)
+to denote a configuration.
+In the second sector however,
+we map the configurations onto linearly independent vectors
+$\ket{v_i} = \sum_\alpha v_{i\alpha} \ket{\alpha}$
+with each index $\alpha$ corresponding to a given state $\ket{\alpha}$
+of the truncated chains
+and the value $v_{i\alpha}$ corresponding to the probability amplitude.
+This way every state of the full system can be expressed as
+\begin{equation}
+    \ket{\psi} = \sum_i \ket{s_i} \otimes \ket{v_i}
+    = \sum_{i, \alpha} v_{i\alpha} \ket{s_i} \otimes \ket{\alpha}.
+\end{equation}
+Normalization is fulfilled by
+\begin{equation}
+    \sum_i \|\ket{v_i}\|^2=\sum_{i, \alpha} |v_{i\alpha}|^2 = 1.
+\end{equation}
+For a system depicted in~\cref{fig:wave-function-split} limited to singles,
+and starting with 3 empty and 3 filled states in $\ham_v$,
+and a factor 2 for spin,
+the vector dimension would be $1+2\cdot(3+3) = 13$;
+one entry stores the amplitude for no excitation
+and 12 entries for an excitation in any of the possible spin-sites.
+
+For this, we can use the struct \mintil{CIWavefunction}.
+\begin{minted}[frame=lines]{julia}
+struct CIWavefunction{T,nslater,nfilled,nempty,excitation}
+    terms::T
+end
+\end{minted}
+Determinants with their corresponding vectors are stored
+inside \mintil{terms} as a dictionary.
+To uniquely describe this new wave function,
+we must save the number of sites inside the determinant $n_s$,
+number of filled (empty) sites $n_f$ ($n_e$) inside the vector,
+and maximum possible CI excitations $e$.
+In this way, the structure is defined at compile time rather than
+runtime if these values were field names instead.
+We can define the interface as:
+\begin{itemize}
+    \item \mintil{terms()} returning the dictionary,
+    \item \mintil{nslater()} returning $n_s$,
+    \item \mintil{nfilled()} returning $n_f$,
+    \item \mintil{nempty()} returning  $n_e$,
+    \item \mintil{excitation()} returning $e$,
+    \item \mintil{nvector()} returning $n_v = n_f + n_e$,
+    \item \mintil{nsites()} returning $n_s + n_f + n_e$.
+\end{itemize}
+
+\subsection{Vector indexing}
+\label{subsec:vector-indexing}
+
+For vector indexing we must establish a bijective mapping between
+indices and states.
+We could group the spin-sites inside the SD either by spin
+\begin{equation}
+    \label{eq:sort-by-spin}
+    \ket{
+        \underbrace{
+            \ldots, c_{2\up}, c_{1\up}, \ldots, v_{2\up}, v_{1\up}, s_\up
+        }_{\up},
+        \underbrace{
+            \ldots, c_{2\dn}, c_{1\dn}, \ldots, v_{2\dn}, v_{1\dn}, s_\dn
+        }_{\dn}
+    },
+\end{equation}
+or by site
+\begin{equation}
+    \label{eq:sort-by-site}
+    \ket{
+        \ldots,
+        \underbrace{c_{2\up}, c_{2\dn}}_{c_2},
+        \underbrace{c_{1\up}, c_{1\dn}}_{c_1},
+        \ldots,
+        \underbrace{v_{2\up}, v_{2\dn}}_{v_2},
+        \underbrace{v_{1\up}, v_{1\dn}}_{v_1},
+        s
+    }.
+\end{equation}
+To decide between these two possibilities,
+we can calculate the effect of a hopping term $t_{ij} \cdag_i \cc_j$ on a SD
+using the anticommutator definition given in
+\cref{eq:anticommutator-definition}.
+For $i > j$ we get
+\begin{equation}
+    \label{eq:hopping-1}
+    \begin{split}
+         & t_{ij} \cdag_i \cc_j \ket{\ldots, n_i=0, \ldots, n_j=1, \ldots} \\
+         & = t_{ij} \prod_{k=j+1}^{i-1} (-1)^{n_k}
+        \ket{\ldots, n_i=1, \ldots, n_j=0, \ldots},
+    \end{split}
+\end{equation}
+and for $i < j$
+\begin{equation}
+    \label{eq:hopping-2}
+    \begin{split}
+         & t_{ij} \cdag_i \cc_j \ket{\ldots, n_j=1, \ldots, n_i=0, \ldots} \\
+         & = t_{ij} \prod_{k=i+1}^{j-1} (-1)^{n_k}
+        \ket{\ldots, n_j=0, \ldots, n_i=1, \ldots},
+    \end{split}
+\end{equation}
+As we can see,
+the sign of the result depends on the number of occupied
+sites between $i$ and $j$.
+Since our chains only contain nearest-neighbor hopping,
+we can group by spin and skip the sign calculation.
+
+Let the superscript denote the excitation and the subscript the index within
+the vector.
+We can store excitations sequentially,
+e.g., if $\ket{v^0} = (v_1^0)$ contains no excitations,
+$\ket{v^1} = (v_1^1, v_2^1, \ldots)$ all single excitations, etc.,
+the full vector can then be assembled by listing the entries of each component
+$\ket{v} = (v_1^0, v_1^1, v_2^1, \ldots)$.
+The vector dimension is therefore
+\begin{equation}
+    \dim(\ket{v})
+    = \sum_{i=0}^e \dim(\ket{v^i})
+    = \sum_{i=0}^e \binom{2n_v}{e},
+\end{equation}
+where $n_v$ is the number of sites inside $\ham_v$
+and the factor 2 accounts for spin.
+Since $\dim(\ket{v^0}) = 1$, no index calculations are necessary for
+no excitation.
+For single excitation inside $\ket{v^1}$,
+we must establish a mapping
+\begin{equation}
+    f: \{1, \ldots, n_v\} \times \{1, 2\} \rightarrow \{1, \ldots, 2n_v\},
+\end{equation}
+by assigning each spin-site
+$(k, \sigma)\mapsto k + (\sigma - 1) n_v \eqcolon a$ an index $a$
+and storing the amplitude of this excitation in $v_a^1$.
+This function $f$ and its inverse are implemented under
+\mintil{_rank1()} and \mintil{_unrank1()}.
+
+For higher excitations we have multiple values $a_i$,
+which we again want to map to an index.
+For this,
+we can use the combinatorial number system
+(combinadics)~\cite{Knuth2005}.
+Given a sequence of numbers $2n_v \geq a_k > \ldots > a_2 > a_1 \geq 0$,
+it assigns a zero-based index $N$
+by the sum of binomial coefficients
+\begin{equation}
+    N = \sum_{i=1}^{k} \binom{a_i}{i},
+\end{equation}
+with $\binom{n}{k} = 0$ for $k > n$.
+This operation is called ``ranking'',
+providing a one-to-one mapping between sequence of numbers and integers
+without any gaps~\cite{Liang1995}.
+The inverse operation (``unranking'') can be done iteratively.
+In the first step we find the biggest integer $a_k$ which satisfies
+\begin{equation}
+    \label{eq:unranking}
+    a_k = \max_{a_k \in \mathbb{N}}\left(\binom{a_k}{k} \leq N\right).
+\end{equation}
+The next number can be found by subtracting the result from the previous index.
+\begin{equation}
+    a_{k-1} = \max_{a_{k-1} \in \mathbb{N}}
+    \left(\binom{a_{k-1}}{k-1} \leq N'\right), \qquad N' = N - \binom{a_k}{k}.
+\end{equation}
+For double excitation however,
+we can use analytical expressions
+\begin{align}
+    a_2 & = \left\lfloor \frac{1 + \sqrt{1 + 8N}}{2} \right\rfloor, \\
+    a_1 & = N - \binom{a_2}{2}.
+\end{align}
+Since Julia indexing is one-based, numbers must be shifted accordingly.
+Mapping between spin-sites and index are available under the functions
+\mintil{getvectorindex()} returning the vector index given excited spin-sites,
+and \mintil{getspinsites()} returning excited spin-sites given a vector index.
+
+\section{Hybrid operator}
+
+To represent the Anderson Hamiltonian which acts on a hybrid wave function,
+we can create a struct \mintil{CIOperator}.
+As mentioned in~\cref{sec:AIM} it should contain three parts,
+one operator acting on $\ket{s}$,
+one acting on $\ket{v}$ using an expansion,
+and a mixed operator representing hopping between
+$\ket{s}$ and $\ket{v}$
+\begin{equation}
+    \label{eq:hamiltonian-split}
+    \ham = \ham_s  + \ham_v + \ham_{\mathrm{mix}}.
+\end{equation}
+The idea is to implement $\ham\ket{\psi}$
+by applying these Hamiltonians successively.
+For $\ham_s\ket{s}$ we can use the existing \textsc{Fermions} code
+with minimal changes.
+This is implemented under the function \mintil{_slaterop!()}.
+
+The next term, $\ham_v$ can be written as
+\begin{equation}
+    \ham_v =
+    \sum_{k,\sigma} \epsilon_k \cdag\ks \cc\ks
+    - \sum_{\langle ij \rangle, \sigma} \left(
+    t_{ij} \cdag_{i\sigma} \cc_{j\sigma}
+    + t_{ij}^* \cdag_{j\sigma} \cc_{i\sigma} \right),
+    \label{eq:H_vector}
+\end{equation}
+with energy levels $\epsilon_k$ and hopping amplitudes $t_{ij}$.
+$\langle\rangle$ denotes nearest-neighbor hopping.
+The expansion by excitation is given by
+\begin{equation}
+    \ham_v
+    \approx \ham_{v0} + \ham_{v1} + \ham_{v2} + \cdots
+    = \sum_{i=0}^e \ham_{vi}.
+\end{equation}
+In the following we will explain each term of the expansion
+and how to store and apply it to a hybrid wave function efficiently.
+As the Hamiltonian in~\cref{eq:H_vector} conserves the particle number
+\begin{equation}
+    [\ham_v, \hat{N}] = \sum_{k, \sigma} [\ham_v, \cdag\ks \cc\ks] = 0,
+\end{equation}
+we can treat each excitation separately.
+For the struct it is enough to store the energy levels
+and hopping amplitudes inside vectors
+($\symbf{\epsilon}$, $\mathbf{t}$ respectively),
+since mapping between indices and sites is established
+in~\cref{subsec:vector-indexing}.
+In the current implementation
+we could either supply vectors with
+$\dim(\symbf{\epsilon}) = n_v$ and $\dim(\mathbf{t}) = n_v - 1$
+internally copying them for both spin orientations,
+or $\dim(\symbf{\epsilon}) = 2n_v$ and
+$\dim(\mathbf{t}) = 2(n_v - 1)$ which sets spin-dependent energy and hopping
+($\epsilon_k \rightarrow \epsilon\ks$ and $t_{ij} \rightarrow t_{ij\sigma}$).
+At the moment both vectors are restricted to real values.
+
+Based on the information of $\symbf{\epsilon}$ and $\mathbf{t}$
+it is possible to
+get the result of any excitation Hamiltonian $\ham_{ve}$ applied
+on the vector $\ket{v^e}$ without creating the matrix explicitly
+(matrix-free method).
+The disadvantage would be that each matrix-vector result must be calculated
+on-the-fly,
+e.g., for a hybrid representation limited to double excitation (HR-2)
+with 100 determinants,
+a total of $3\cdot100$ matrix-vector calculations must be done with
+the factor 3 resulting from the maximum excitation (including no excitation).
+As we want this to be fast, this is not ideal.
+We could therefore create a matrix for each excitation once
+and cache it if it is feasible memory-wise.
+They can then be applied onto each vector
+using built in matrix-vector multiplication
+which has been optimized for decades already.
+In the aforementioned example three matrices would be created.
+
+For no excitation, the hopping terms of $\ham_v$ in \cref{eq:H_vector} can
+be ignored since all bath sites are either full ($v_k$) or empty ($c_k$).
+The Hamiltonian is therefore just a scalar
+\begin{equation}
+    \ham_{v0} = \sum_{v_k,\sigma} \epsilon_{v_k} \eqcolon \epsilon_{v0}.
+\end{equation}
+
+Given an excitation $e$,
+we should first estimate the number of nonzero entries $\nnz$
+inside $\ham_{ve}$ to determine whether we could even store the matrix.
+If an excitation is at location $(k, \sigma)$,
+we must store one value on the diagonal
+for the energy $\epsilon_0 \mp \epsilon\ks$
+with the sign depending on whether
+a valence or conduction bath site is excited,
+and two values for nearest-neighbor hopping
+$(k, \sigma) \rightarrow (k\pm1, \sigma)$.
+This results altogether in
+\begin{equation}
+    \nnz <
+    (1+2e) \binom{2n_{v}}{e}
+\end{equation}
+with the inequality resulting from the fact that
+excitations in the first and last spin-site can only hop in one direction.
+Using this result, we can estimate the fill factor of a matrix,
+which is defined as the ratio of nonzeros to matrix dimension
+\begin{equation}
+    f < \frac{\displaystyle(1+2e)\binom{2n_v}{e}}
+    {\displaystyle\binom{2n_v}{e}^2}
+    \ll 1.
+\end{equation}
+Since we assume that $e \ll n_v$,
+this value is much smaller than one,
+which suggests a sparse matrix storage method.
+The Julia documentation\footnote{
+    \url{https://docs.julialang.org/en/v1/stdlib/SparseArrays/}}
+lists the compressed sparse column (CSC) format.
+We can set an upper bound of the storage size using the coordinate format (COO)
+keeping three \qty{64}{\bit} numbers for each nonzero entry.
+As displayed in~\cref{tab:ham-storage},
+this poses no problem for singles and doubles,
+while triples could be problematic for consumer grade hardware.
+
+\begin{table}[ht]
+    \caption{Storage estimation (upper bound) in byte
+        of the Hamiltonian in COO format.}
+    \label{tab:ham-storage}
+    \centering
+    \begin{tabular}{l S S S}
+        \doubletoprule
+                   & \multicolumn{3}{c}{$n_b$ (bath sites)}                 \\
+        \cmidrule{2-4}
+        Excitation & {100}                                  & {200} & {300} \\
+        \midrule
+        Single     & 14e3                                   & 29e3  & 43e3  \\
+        Double     & 2e6                                    & 10e6  & 22e6  \\
+        Triple     & 221e6                                  & 2e9   & 6e9   \\
+        \doublebottomrule
+    \end{tabular}
+\end{table}
+
+For single excitation we can use a more optimized storage format.
+As the matrix is tridiagonal, we can use the existing structs
+\mintil{Tridiagonal} for complex values
+or \mintil{SymTridiagonal} for real values.
+
+Currently, the modified \textsc{Fermions} package features
+up to double excitation.
+Matrices are cached when creating a new instance of \mintil{CIOperator}.
+The matrix-vector multiplication between $\ham_v$ and $\ket{v}$
+is implemented inside the function \mintil{_vectorop!()}
+using five-argument \mintil{mul!()}.
+
+Lastly, let us turn to $\ham_\mathrm{mix}$.
+We can understand the mixed operator as
+removing a particle from a spin-site $n_{i\sigma}$ inside $\ket{s}$,
+and adding it to spin-site $n_{j\sigma}$ inside $\ket{v}$ or vice versa.
+This can be stored inside the struct \mintil{CIOperatorMixed}.
+Constructing this object works from tuples $(i, j, t)$
+which automatically creates four operators
+\begin{equation}
+    t \cdag_{i\up} \cc_{j\up}, \quad
+    t \cdag_{j\up} \cc_{i\up}, \quad
+    t \cdag_{i\dn} \cc_{j\dn}, \quad
+    t \cdag_{i\dn} \cc_{j\dn}.
+\end{equation}
+We can calculate $\ham_{\mathrm{mix}} \ket{\psi}$ by first applying
+the corresponding operator on $\ket{s}$ using already
+existing infrastructure.
+As the sign of the phase depends on the occupation of
+all spin-sites between $i$ and $j$ (see~\cref{eq:hopping-1,eq:hopping-2}),
+we can split it into two components: a bit phase and vector phase.
+For the former we can store a mask which considers
+all sites following $(i, \sigma)$,
+e.g., if it is at the fourth location,
+the mask contains ones from digit five onwards ($\ldots11110000$).
+We can interpret adding/removing a particle in $\ket{v}$ as
+lowering or raising the excitation and store it as a boolean.
+If the excitation inside $\ket{v}$ is lowered,
+the single excitation state on $(j, \sigma)$ is mapped to
+the state without excitation.
+The excitation $c^{(\dagger)}_{j\sigma}$ must be at the first
+valence (conduction) bath site.
+If the excitation $j$ is at the first valence bath site,
+the vector phase is one;
+otherwise the excitation is at the first conduction bath site,
+resulting in the sign $(-1)^{n_f}$.
+For double excitation at $((j, \sigma), (k, \sigma'))$,
+the state is mapped to the single excitation state $(k, \sigma')$.
+If $(k, \sigma')$ has a smaller index than $(j, \sigma)$,
+the aforementioned phase is multiplied by $(-1)$,
+since one particle more/less exists.
+Raising the excitation can be done similarly.

@@ -1,0 +1,53 @@
+%! TeX root = ../thesis.tex
+\chapter{Conclusions and outlook}
+
+We have shown that by splitting the AIM into two components,
+one part can be represented as bits,
+and another can be represented as a vector of CI excitations.
+This allows us to speed up the calculation $\ham \ket{\psi}$
+of the Anderson Hamiltonian on a state by
+up to a factor of 2000 depending on the number of bath sites and excitation
+with an accuracy loss of $O(10^{-15})$ for the wave function.
+Calculations which took tens of seconds can now be done in
+a matter of hundreds of \unit{\milli\second}.
+
+Using this new tool,
+our goal is to determine properties and Green's functions of systems
+which contain hundreds of bath sites which is going to be
+the work of my master thesis.
+
+Although the current implementation shows numerical consistence with the
+existing bit representation,
+some restrictions remain.
+One is that hopping is currently restricted to real values,
+which is not hard to extend to the complex domain if necessary.
+Another factor is the addition of a spin dependency
+to the mixed operator $\ham_{\mathrm{mix}}$.
+Instead of using tuples $(i, j, t)$,
+we can use $(i, j, \sigma, t)$ and adjust the backend which is not much work.
+If this feature is realized,
+all three terms of~\cref{eq:hamiltonian-split}
+can accommodate spin-dependent energies and hopping.
+
+We can extend the feature set to triple excitations if doubles are not
+accurate enough. For fast unranking (see~\cref{eq:unranking}) this
+requires solving a cubic equation on integers and storage of a matrix
+which would take a few \unit{\giga\byte} of space (\cref{tab:ham-storage}).
+
+At the moment, terms of opposite spin hopping, e.g., $\cdag_{i\up}\cc_{j\dn}$
+will evaluate with a possible wrong sign in the bit component.
+These terms are not necessary as long as we have time reversal symmetry,
+since we can change into the $\hat{J}$, $\hat{J_z}$ basis.
+If one wants to implement a few of this kind of terms,
+it is possible to write a custom operator,
+otherwise it would probably be better to change the whole underlying order from
+spin-sorting defined in \cref{eq:sort-by-spin} to site-sorting
+(\cref{eq:sort-by-site}),
+which requires a major rewrite.
+
+To get even more performance,
+we could employ multithreading.
+The first choice would be the application
+of the vector Hamiltonian on the vector component $\ham_v \ket{v}$,
+since it does not change dictionary keys
+and each matrix-vector multiplication is independent of each other.

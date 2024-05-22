@@ -1,0 +1,202 @@
+%! TeX root = ../thesis.tex
+\chapter{Results}
+
+To characterize the implementation of the hybrid representation,
+we can create a single-determinant state $\ket{\psi_0}$
+and do a power iteration to generate new states
+containing multiple determinants
+\begin{equation}
+    \label{eq:power-iteration}
+    \ket{\psi_n}
+    = \frac{\ham \ket{\psi_{n-1}}}{\|\ham \ket{\psi_{n-1}}\|}
+    = \frac{\ham^n \ket{\psi_0}}{\|\ham^n \ket{\psi_0}\|}.
+\end{equation}
+This will be relevant when calculating the ground state using the
+Lanczos algorithm~\cite{Lanczos1950} which uses a Krylov subspace
+\begin{equation}
+    \mathcal{K}_n (\ham, \ket{\psi})
+    = \spn\{\ket{\psi}, \ham\ket{\psi}, \ham^2\ket{\psi}, \ldots,
+    \ham^n\ket{\psi}\}
+\end{equation}
+for a given operator $\ham$ and state $\ket{\psi}$.
+We create a Hamiltonian for the geometry shown in~\cref{subfig:geometry-tri}
+using the parameters listed in
+\cref{tab:parameters}.
+This Hamiltonian is converted to the natural orbital representation
+and the starting state is half-filled
+as shown in~\cref{subfig:geometry-nat}
+\begin{equation}
+    \ket{\psi_0} = \fdag_{\up} \cdag_{b\dn}
+    \prod_{v_k,\sigma} \cdag_{v_k\sigma} \ket{0}.
+\end{equation}
+$\cdag_b$ is the creation operator for the mirror bath site.
+
+Performance benchmarks ran on the Vienna Scientific Cluster VSC-5
+using the package \textsc{BenchmarkTools}~\cite{BenchmarkTools.jl-2016}.
+The minimum time was used as the runtime estimator
+following the authors' suggestion.
+The system contains AMD EPYC\texttrademark~7713\footnote{
+    \url{https://www.amd.com/en/products/cpu/amd-epyc-7713}
+}
+CPUs with 64 cores and at least \qty{256}{\giga\byte} of memory.
+As the implemented code is currently single-threaded
+and memory requirements depend on the model complexity,
+it can also run on consumer hardware.
+
+\begin{table}[ht]
+    \caption{Hamiltonian parameters used for benchmarks.}
+    \label{tab:parameters}
+    \centering
+    \begin{tabular}{l c S}
+        % \toprule
+        \doubletoprule
+        Parameter             & Symbol       & {Value} \\
+        \midrule
+        Coulomb interaction   & $U$          & 4.0     \\
+        Impurity energy level & $\epsilon$   & -2.0    \\
+        Bath energy levels    & $\epsilon_k$ & 0.0     \\
+        Hybridization         & $V$          & -1.0    \\
+        Bath hopping          & $-t_{ij}$    & -1.0    \\
+        \doublebottomrule
+    \end{tabular}
+\end{table}
+
+\section{Numerical precision}
+
+In order to compare results between the bit and hybrid representation
+(BR and HR respectively),
+we can write functions to convert between them.
+We calculate up to 20 iterations, varying the amount of bath sites,
+and number of sites inside the determinant of the HR.
+After a couple of iterations we can find a mismatch of SDs,
+which are associated with amplitudes
+$|\alpha_i| \leq 10^{-20}$ which are much smaller than
+machine epsilon $\epsilon = 2^{-52} \approx 10^{-16}$,
+and generated when two amplitudes add up destructively.
+After removing all SDs with weight $|\alpha_i| < \epsilon$,
+each amplitude obtained by the two methods can be compared against each other
+and verified to fit within a relative tolerance of \num{e-10}.
+For the whole wave function the difference is roughly
+\begin{equation}
+    \|\ket{\psi^\mathrm{BR}} - \ket{\psi^\mathrm{HR}}\|
+    \approx O(10^{-15}).
+\end{equation}
+
+\section{Hamiltonian}
+
+\begin{figure}[ht]
+    \centering
+    \input{./tikz_src/hamiltonian_creation.tex}
+    \caption{
+        Time taken to create the Hamiltonian
+        in the natural orbital representation
+        using different methods.
+        The hybrid representation (HR) uses four sites (including impurity)
+        in the bit component,
+        single (HR-1) and single plus double (HR-2) excitations in $\ham_v$.
+        Right panel shows HR-1 using linear axes.
+    }
+    \label{fig:hamiltonian-creation}
+\end{figure}
+
+For the following tests we put four sites (including impurity) into the
+bit component and all other sites into the vector component.
+\Cref{fig:hamiltonian-creation} shows the time taken to create the Hamiltonian
+for both representations.
+The old method shows a cubic scaling while
+the new method scales by the maximum allowed excitation.
+
+\section{Power iteration}
+
+\begin{figure}[htb!]
+    \centering
+    \input{./tikz_src/wave_function_creation.tex}
+    \caption{
+        Power iteration $n$ of~\cref{eq:power-iteration}
+        using \numlist{101; 301} bath sites $n_b$.
+        Top panels show time to calculate one step $\ham \ket{\psi_n}$
+        excluding normalization.
+        Bottom panels show number of determinants of $\ket{\psi_n}$,
+        which overlap for the hybrid representation.
+        Left: single excitation.
+        Right: single plus double excitation.
+    }
+    \label{fig:wave-function-iteration}
+\end{figure}
+
+Since normalization is faster than applying the Hamiltonian,
+we only time the numerator of~\cref{eq:power-iteration} in benchmarks.
+The top panels of~\cref{fig:wave-function-iteration} show the time taken
+to calculate one iteration $\ham\ket{\psi_n}$.
+We can see that the time for the HR plateaus already at iteration ten.
+This flattening can be understood
+if we look at the number of determinants at each step,
+shown in the bottom panels of~\cref{fig:wave-function-iteration}.
+Since most of the information is stored inside vectors and not the
+bit component (containing only four sites),
+the number of possible determinants is very low
+and independent of the number of bath sites.
+For a half-filled system we get
+36 determinants in a state of no excitation,
+96 in a single excitation state,
+and 88 in a double excitation state.
+Once these determinants are created,
+which happens before the tenth iteration,
+there is no additional cost,
+and therefore constant time.
+
+The BR with 101 bath sites
+restricted to singles
+plateaus between iteration \numlist{50; 60}.
+This happens because we have two chains with 50 bath sites each.
+The excitation starts at the beginning of the chain and hops to the next
+site at each iteration.
+Once we reach the end,
+all possible states are generated.
+
+To get the improvement of the new method over the old one,
+we can create the ratio of the measured times
+which is shown in~\cref{fig:performance-improvement-iteration}.
+We can see that the new method restricted to singles
+shows an improvement for all measured parameters.
+In the case of 101 bath sites the improvement plateaus
+between iteration \numlist{50; 60} which we explained before.
+
+For double excitation we see a performance regression for
+the first 15 iterations
+which correspond to states with less than around \num{e4} SDs.
+For states with more determinants
+we gain a performance boost with the HR.
+
+\begin{figure}
+    \centering
+    \input{./tikz_src/wave_function_improvement.tex}
+    \caption{
+        Performance improvement of the new HR over the existing BR
+        when calculating one step $\ham \ket{\psi_n}$ of the power iteration
+        excluding normalization.
+        HR uses four sites (including impurity) in the bit component.
+        Here, \numlist{101; 301} bath sites $n_b$ were tested.
+        Left: single excitation.
+        Right: single plus double excitation.
+    }
+    \label{fig:performance-improvement-iteration}
+\end{figure}
+
+We can take the measured value at the highest iteration which corresponds to
+the calculation of $\ham\ket{\psi_{99}}$ and compare it against the number of
+bath sites $n_b$,
+as shown in~\cref{fig:ciwf-scaling}.
+HR-1 shows a good agreement with a linear fit,
+while for HR-2 we can see a scaling which is a little worse than $O(n_b^2)$.
+
+\begin{figure}[htb!]
+    \centering
+    \input{./tikz_src/wave_function_time_scaling.tex}
+    \caption{
+        Time to calculate $\ham\ket{\psi_{99}}$ in the
+        hybrid representation for singles (HR-1)
+        and singles plus doubles (HR-2).
+    }
+    \label{fig:ciwf-scaling}
+\end{figure}

@@ -1,0 +1,198 @@
+%! TeX root = ../thesis.tex
+\chapter{Introduction}
+
+Many body physics can give rise to interesting phenomena,
+e.g., Bose-Einstein condensates (BEC) or superconductivity.
+The general problem however
+is the exponential increase of configurations with each particle added.
+One approach to overcome this
+is dynamical mean-field theory (DMFT)~\cite{Georges1996},
+an approximation that is controlled in $1/z$ ($z$: number of neighbors)
+and which successfully describes
+Kondo physics~\cite{Wilson1975, Andrei1983}
+and Mott insulators~\cite{MOTT1968}.
+In DMFT, we can map a crystal lattice onto an
+Anderson impurity model (AIM)~\cite{Anderson1961},
+which we can solve among other things with
+quantum Monte Carlo (QMC)~\cite{Hirsch1986, Gull2011}
+or exact diagonalization (ED)~\cite{Caffarel1994} methods.
+The disadvantages of the former compared to the latter are
+that QMC is computationally demanding for low temperatures and the
+analytical continuation from imaginary frequencies
+is an ill-conditioned problem~\cite{Silver1990}.
+The problem with ED is that it is only feasible for a few bath sites
+which works well for isolators but not for materials with a Kondo peak.
+Since we are interested in the ground state of a system and states close
+to it,
+we can limit the number of excitations,
+using configuration interaction (CI)~\cite{Nesbet1967, Nesbet1970}.
+
+The goal of this thesis is building a framework which can reproduce the work
+of \citeauthor*{Lu2019}~\cite{Lu2019}.
+
+\section{Anderson impurity model}
+\label{sec:AIM}
+
+Since no analytical solution of the Hubbard model~\cite{Hubbard1964} in
+arbitrary dimensions exists,
+we map it within DMFT onto a single-site AIM
+to describe our system with fewer degrees of freedom.
+In DMFT we hence ignore all spatial fluctuations
+and only keep time correlations.
+This approximation becomes exact in the limit of
+infinite lattice coordination~\cite{Metzner1989}.
+Our system contains a single impurity $i$ with energy level $\epsilon$
+and on-site Coulomb interaction $U$.
+This impurity is coupled by a hybridization $V_k$ to
+bath sites with energies $\epsilon_k$
+as illustrated in~\cref{subfig:geometry-AIM}.
+Its Hamiltonian can be written as
+\begin{equation}
+    \label{eq:H_AIM}
+    \begin{split}
+        \ham_\text{AIM}
+        = & \sum_\sigma \epsilon \fdag_\sigma \ff_\sigma
+        + U \fdag_\up \fdag_\dn \ff_\dn \ff_\up           \\
+          & + \sum_{k, \sigma} \epsilon_k \cdag\ks \cc\ks
+        + \sum_{k, \sigma} \left(V_k \fdag_{\vphantom{k}\sigma} \cc\ks
+        + V_k^* \cdag\ks \ff_{\vphantom{k}\sigma} \right),
+    \end{split}
+\end{equation}
+with spin $\sigma \in \{\up, \dn\}$,
+impurity creation (annihilation) operators $\fdag$ ($\ff$),
+and bath creation (annihilation) operators $\cdag$ ($\cc$).
+The first two terms of~\cref{eq:H_AIM} can be identified as the
+impurity Hamiltonian $\ham_i$.
+
+According to \citeauthor*{Lu2014}~\cite{Lu2014},
+we can use different bath geometries
+related to each other by unitary transformations,
+as we want to represent the ground state of the system
+with the fewest Slater determinants (SDs) possible.
+Since it is not convenient to mix impurity and mean-field approximate sites,
+only basis rotations within the mean-field sites are allowed,
+preserving $\ham_i$.
+
+The advantage of the representation in~\cref{subfig:geometry-AIM} is that bath
+sites with low (high) onsite energy are
+basically full (empty), indicated by their fill level.
+Hopping is annotated by connecting sites by lines.
+The disadvantage is that each bath site can interact with the impurity
+and therefore is important.
+
+We can make a basis transformation in which the impurity interacts with only
+one bath site,
+which in turn interacts with the next bath site etc., forming a chain.
+This is shown in~\cref{subfig:geometry-tri}
+where the single particle Hamiltonian can be expressed in a tridiagonal form.
+The problem in this representation is that each bath site is partially occupied,
+and the ground state requires an exponentially growing number of SDs.
+
+The minimal number of SDs
+to describe the ground state can be achieved in the natural orbital basis.
+In this representation we create full (valence bath sites $v_i$)
+and empty chains (conduction bath sites $c_i$)
+which are coupled to the impurity and a mirror bath site $b$
+as depicted in~\cref{subfig:geometry-nat}.
+In order to be able to have an arbitrary filling $n$ of the impurity,
+the mirror bath site has the opposite filling $1 - n$~\cite{Lu2014}.
+
+\begin{figure}
+    \centering
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \input{./tikz_src/geometry_aim.tex}
+        \caption{}
+        \label{subfig:geometry-AIM}
+    \end{subfigure}
+    ~
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \input{./tikz_src/geometry_tridiag.tex}
+        \caption{}
+        \label{subfig:geometry-tri}
+    \end{subfigure}
+    ~
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \input{./tikz_src/geometry_nat_orbitals.tex}
+        \caption{}
+        \label{subfig:geometry-nat}
+    \end{subfigure}
+    \caption{
+        Different bath geometries.
+        Impurity $i$ interacting with bath sites $b_i$, or $b$, $v_i$, $c_i$.
+        Site occupation is indicated by fill level.
+        (adapted from~\cite{Lu2014}, Fig.~1)
+    }
+\end{figure}
+
+We can further split the setup into two components as
+shown in~\cref{fig:wave-function-split}.
+The first component only includes the impurity, mirror bath site,
+and $L$ valence and conduction bath sites,
+with $L$ as a tunable parameter~\cite{Lu2019}.
+In general this value can differ for
+conduction/valence bath sites.
+The second component includes all other bath sites,
+which we want to approximate with CI.
+This splits the Hamiltonian into three components
+(see~\cref{fig:wave-function-split}):
+$\ham_s$ which acts on the impurity and sites close to it,
+$\ham_v$ which acts on the truncated chains,
+and $\ham_\text{mix}$ which connects both.
+For no excitation inside the truncated chains,
+all valence bath sites $v_i$ are filled
+and all conduction bath sites $c_i$ are empty which we write as
+$\ket{\mathbb{1}_v} \otimes \ket{\mathbb{0}_c}$~\cite{Lu2019}.
+In this work we will limit the number of excitations to singles and doubles,
+meaning that up to one (two) occupations of spin-sites
+can differ from the aforementioned state.
+
+\begin{figure}[ht]
+    \centering
+    \input{./tikz_src/wave_function_split.tex}
+    \caption{
+        Separating the Anderson Hamiltonian $\ham_\text{AIM}$
+        into three components:
+        $\ham_s$, $\ham_v$ act on sites enclosed by its corresponding box,
+        $\ham_\text{mix}$ connects the two parts.
+        (adapted from~\cite{Lu2019}, Fig.~2)
+    }
+    \label{fig:wave-function-split}
+\end{figure}
+
+\section{Fermions package}
+
+We implement the concepts and ideas described in the previous section
+in the module \textsc{Wavefunctions} of the
+\textsc{Fermions}~\cite{Wallerberger2022} package,
+which is written in Julia~\cite{Bezanson2017}.
+First, we will give a short introduction of the package
+and status quo,
+which uses the occupation number basis for SDs.
+Each site $k$ of the AIM contains two spin-sites $\sigma$
+with occupation $n\ks \in \{0, 1\}$ for fermions.
+Each SD $\ket{n_n, \ldots, n_3, n_2, n_1}$
+can therefore be interpreted as a bit pattern of zeros and ones
+represented by an unsigned integer
+with creation/annihilation operators acting as bit flips.
+The vacuum state $\ket{0}$ can be depicted as zero consisting of no particles.
+To store the wave function,
+we can use a dictionary with keys acting as SDs
+and associated values acting as probability amplitudes
+\begin{equation}
+    \ket{\psi} = \sum_i \alpha_i \ket{S_i},
+\end{equation}
+which is currently implemented in the struct \mintil{Wavefunction}.
+For normalization $\sum_i |\alpha_i|^2=1$ must be fulfilled.
+To satisfy the fermionic anticommutator relations,
+the annihilation operator is defined as
+\begin{equation}
+    \label{eq:anticommutator-definition}
+    \begin{split}
+        \cc_k \ket{\ldots, n_k=1, \ldots}
+         & \coloneq \prod_{i=1}^{k-1} (-1)^{n_i} \ket{\ldots, n_k=0, \ldots} \\
+         & = (-1)^{\sum_{i=1}^{k-1} n_i} \ket{\ldots, n_k=0, \ldots}.
+    \end{split}
+\end{equation}

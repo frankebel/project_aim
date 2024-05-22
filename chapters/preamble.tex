@@ -1,0 +1,127 @@
+%! TeX root = ../thesis.tex
+\documentclass[11pt,abstract=on]{scrreport}
+
+% general formatting
+\usepackage[a4paper,left=30mm,right=30mm,top=35mm,bottom=50mm]{geometry}
+
+% font typesetting
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+\setmonofont{DejaVu Sans Mono}[Scale=MatchLowercase]
+
+% math and science typesetting
+\usepackage{amsmath}
+\DeclareMathOperator{\spn}{span}
+\usepackage{amssymb}
+\usepackage{upgreek} % upright pi
+\usepackage{nicematrix}
+\usepackage{braket}
+% \usepackage{mathtools}
+\usepackage[bold-style=upright]{unicode-math} % unicode in math mode (Julia)
+\usepackage[version=4]{mhchem}
+\usepackage{siunitx}
+\usepackage{unicode-math} % load after ams packages
+\setmathfont{NewCMMath-Book}
+
+% graphics, colors, captions, tables
+\usepackage{graphicx}
+\graphicspath{{./figures/}}
+\usepackage{tikz}
+\usetikzlibrary{external}
+\tikzexternalize[prefix=tikz/] % do not clutter root directory
+\usetikzlibrary{positioning}
+\usetikzlibrary{fit}
+\usetikzlibrary{shapes.symbols}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{groupplots}
+\usepgfplotslibrary{colorbrewer}
+\pgfplotsset{
+    cycle list/Set1,
+    cycle multiindex* list={
+            mark list*\nextlist
+            Set1\nextlist%
+        },
+}
+\usepackage{pgfplotstable}
+\pgfplotstableset{col sep=comma}
+\pgfplotstableset{
+    every head row/.style={before row=\toprule\toprule, after row=\midrule},
+    every last row/.style={after row=\bottomrule\bottomrule}
+}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage[labelformat=simple]{subcaption}
+\usepackage{booktabs}
+\usepackage{tabularx}
+
+% code, programming
+% \usepackage{listings}
+\usepackage[outputdir=build,langlinenos=true]{minted} % requires "pygments" with shell escape
+
+% references, bibliography, and links
+\usepackage[style=phys,biblabel=brackets]{biblatex}
+\addbibresource{ref.bib}
+\usepackage{hyperref}
+\newcommand{\Title}
+{
+    Configuration interaction as an Anderson impurity solver
+}
+\hypersetup{
+    colorlinks=true,
+    urlcolor=blue,
+    citecolor=blue,
+    linkcolor=blue,
+    breaklinks=true,
+    pdftitle={\Title},
+    pdfauthor={Frank Ebel},
+}
+\usepackage[capitalise]{cleveref}
+\renewcommand\thesubfigure{(\alph{subfigure})}
+
+% misc
+\usepackage{shellesc}
+\usepackage{datetime2} % ISO 8601
+% \usepackage{todonotes} % not compatible with tikzexternalize
+\usepackage[language=english]{lipsum} % placeholder text
+
+% shorten often used commands
+
+% Physical Review style requires two lines together
+% at beginning and end of tables.
+% \renewcommand{\toprule}{\toprule\toprule}
+\newcommand{\doubletoprule}{\toprule\toprule}
+\newcommand{\doublebottomrule}{\bottomrule\bottomrule}
+
+% programming
+\newcommand{\mintil}[1]{\mintinline{julia}{#1}}
+
+% group notes by color
+\newcommand{\question}[1]{{\color{green}(\textbf{Q}: #1)}}
+\newcommand{\todo}[1]{{\color{red}(\textbf{TODO}: #1)}}
+\newcommand{\mb}[1]{{\color{orange}(\textbf{MB}: #1)}}
+
+% mathematical constants
+\newcommand{\eu}{\text{e}}
+\newcommand{\ii}{\text{i}}
+
+% QFT operators
+\newcommand{\ham}{\hat{H}}
+\newcommand{\cc}{\hat{c}^{\vphantom{\dagger}}}
+\newcommand{\ff}{\hat{f}^{\vphantom{\dagger}}}
+\newcommand{\cdag}{\hat{c}^\dagger}
+\newcommand{\fdag}{\hat{f}^\dagger}
+\newcommand{\nn}{\hat{n}}
+
+% subsrcipt
+\newcommand{\ks}{_{k\sigma}}
+\newcommand{\nnz}{N_{\text{nz}}}
+
+% shorten arrows
+\newcommand{\up}{\uparrow}
+\newcommand{\dn}{\downarrow}
+
+% TikZ
+\input{./tikz_src/global.tex}

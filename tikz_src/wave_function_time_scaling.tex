@@ -1,0 +1,64 @@
+%! TeX root = ../thesis.tex
+\begin{tikzpicture}
+    \begin{groupplot}[
+            group style={
+                    group size=2 by 1,
+                    horizontal sep=15mm,
+                    ylabels at=edge left,
+                },
+            width=0.45\textwidth,
+            xlabel={$n_b$ (bath sites)},
+            ylabel={$t$ (\unit{\second})},
+            xtick={100,200,...,300},
+            minor xtick={50,150,...,250},
+            xminorticks=true,
+            legend style={
+                    at={(0.05, 0.95)},
+                    anchor=north west,
+                },
+            legend cell align={left},
+        ]
+
+        \nextgroupplot[
+            xmode=log,
+            ymode=log,
+            xticklabel=\pgfmathparse{exp(\tick)}\pgfmathprintnumber{\pgfmathresult},
+            xticklabel style={
+                    /pgf/number format/fixed,
+                    /pgf/number format/precision=0,
+                },
+        ]
+        \addplot+[only marks]
+        table [x=bath_sites, y=double] {./data/wave_function_time_scaling.csv};
+        \addlegendentry{HR-2}
+        \addplot+[only marks]
+        table [x=bath_sites, y=single] {./data/wave_function_time_scaling.csv};
+        \addlegendentry{HR-1}
+        \addplot
+        [
+            domain=50:300,
+            samples=10,
+            dashed,
+        ]
+        {3e-6 * x^2}
+        coordinate [pos=0.9] (quadratic);
+        \node[inner sep=3mm, below] at (quadratic.south) {$O(n_b^2)$};
+
+        \nextgroupplot
+        \pgfplotsset{cycle list shift=1}
+        \addplot+[
+            only marks,
+            forget plot,
+        ]
+        table [x=bath_sites, y=single] {./data/wave_function_time_scaling.csv};
+        \addplot
+        [
+            domain=50:300,
+            samples=10,
+            dashed,
+        ]
+        {9.3e-7 * x + 5e-5}
+        coordinate [pos=0.9] (linear);
+        \node[inner sep=5mm, below] at (linear.south) {$O(n_b)$};
+    \end{groupplot}
+\end{tikzpicture}

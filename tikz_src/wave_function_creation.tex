@@ -1,0 +1,75 @@
+%! TeX root = ../thesis.tex
+\begin{tikzpicture}
+    \begin{groupplot}[
+            group style={
+                    group name=plots,
+                    group size=2 by 2,
+                    horizontal sep=15mm,
+                    vertical sep=2mm,
+                    x descriptions at=edge bottom,
+                    ylabels at=edge left,
+                },
+            width=0.45\textwidth,
+            ymode=log,
+            xlabel={$n$ (iteration)},
+            xmin=-10,
+            xmax=110,
+            every axis plot post/.append style={only marks},
+        ]
+
+        \nextgroupplot[
+            ylabel={$t$ (\unit{\second})},
+            legend to name=grouplegend,
+            legend columns=2,
+            transpose legend=true,
+            legend style={
+                    /tikz/every even column/.append style={column sep=5mm}
+                },
+        ]
+        % WF
+        \addplot+ table [x=i, y=t_wf_1_301] {./data/h_psi_1_100.csv};
+        \addlegendentry[color=black]{BR, $n_b=301$}
+        \addplot+ table [x=i, y=t_wf_1_101] {./data/h_psi_1_100.csv};
+        \addlegendentry[color=black]{BR, $n_b=101$}
+        % CIWF
+        \addplot+ table [x=i, y=t_ciwf_1_301] {./data/h_psi_1_100.csv};
+        \addlegendentry[color=black]{HR, $n_b=301$}
+        \addplot+ table [x=i, y=t_ciwf_1_101] {./data/h_psi_1_100.csv};
+        \addlegendentry[color=black]{HR, $n_b=101$}
+
+        \nextgroupplot
+        % WF
+        \addplot+ table [x=i, y=t_wf_2_301] {./data/h_psi_2_100.csv};
+        \addplot+ table [x=i, y=t_wf_2_101] {./data/h_psi_2_100.csv};
+        % CIWF
+        \addplot+ table [x=i, y=t_ciwf_2_301] {./data/h_psi_2_100.csv};
+        \addplot+ table [x=i, y=t_ciwf_2_101] {./data/h_psi_2_100.csv};
+
+        \nextgroupplot[
+            ylabel={$d$ (determinants)},
+        ]
+        % WF
+        \addplot+ table [x=i, y=l_wf_1_301] {./data/h_psi_1_100.csv};
+        \addplot+ table [x=i, y=l_wf_1_101] {./data/h_psi_1_100.csv};
+        % CIWF
+        \addplot+ table [x=i, y=l_ciwf_1_301] {./data/h_psi_1_100.csv};
+        \addplot+ table [x=i, y=l_ciwf_1_101] {./data/h_psi_1_100.csv};
+
+        \nextgroupplot
+        % WF
+        \addplot+ table [x=i, y=l_wf_2_301] {./data/h_psi_2_100.csv};
+        \addplot+ table [x=i, y=l_wf_2_101] {./data/h_psi_2_100.csv};
+        % CIWF
+        \addplot+ table [x=i, y=l_ciwf_2_301] {./data/h_psi_2_100.csv};
+        \addplot+ table [x=i, y=l_ciwf_2_101] {./data/h_psi_2_100.csv};
+
+    \end{groupplot}
+
+    \node at (plots c1r1.north east)
+    [
+        inner sep=0pt,
+        anchor=south,
+        yshift=2mm,
+    ]
+    {\ref{grouplegend}};
+\end{tikzpicture}

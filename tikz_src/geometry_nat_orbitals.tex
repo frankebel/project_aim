@@ -1,0 +1,25 @@
+\begin{tikzpicture}[
+        inner sep=1mm,
+        node distance=5mm,
+    ]
+    % draw sites
+    \node [impurity, label=left:$i$] (i) {};
+    \node [bath half, label=right:$b$] (b) [right=of i] {};
+    \node [bath full, label=below:$v_1$] (v1) [below=of b] {};
+    \node [bath empty, label=above:$c_1$] (c1) [above=of b] {};
+    \foreach \i [remember=\i as \lasti (initially 1)] in {2,3,...,4}
+    \node [bath full, label=below:$v_\i$] (v\i) [right=of v\lasti] {};
+    \foreach \i [remember=\i as \lasti (initially 1)] in {2,3,...,4}
+    \node [bath empty, label=above:$c_\i$] (c\i) [right=of c\lasti] {};
+    % connect sites
+    \draw (i.east) -- (b.west);
+    \draw (i.south) -- (v1.north west);
+    \draw (i.north) -- (c1.south west);
+    \draw (b.south) -- (v1.north);
+    \draw (b.north) -- (c1.south);
+    \foreach \i [remember=\i as \lasti (initially 1)] in {2,3,...,4}
+        {
+            \draw (v\lasti.east) -- (v\i.west);
+            \draw (c\lasti.east) -- (c\i.west);
+        }
+\end{tikzpicture}

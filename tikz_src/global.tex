@@ -1,0 +1,71 @@
+%! TeX root = ../thesis.tex
+% Global TikZ options for the whole document.
+
+% fraction filled bath site
+\tikzset{
+    bath/.style={
+            circle,
+            inner sep=0pt,
+            minimum size=3mm,
+            draw=black,
+            very thick,
+            path picture={
+                    \fill[black] (path picture bounding box.south east)
+                    rectangle ($(path picture bounding box.south west)!#1!
+                        (path picture bounding box.north west)$);
+                }
+        },
+}
+
+% empty bath site
+\tikzset{
+    bath empty/.style={
+            circle,
+            inner sep=0pt,
+            minimum size=3mm,
+            draw=black,
+            very thick,
+        },
+}
+
+% half filled bath site
+\tikzset{
+    bath half/.style={
+            circle,
+            inner sep=0pt,
+            minimum size=3mm,
+            draw=black,
+            very thick,
+            path picture={
+                    \fill[black] (path picture bounding box.west)
+                    rectangle (path picture bounding box.south east);
+                }
+        },
+}
+
+% up and down filled bath site
+\tikzset{
+    bath full/.style={
+            circle,
+            inner sep=0pt,
+            minimum size=3mm,
+            draw=black,
+            very thick,
+            fill=black,
+        },
+}
+
+% half filled impurity
+\tikzset{
+    impurity/.style={
+            rectangle,
+            inner sep=0pt,
+            minimum size=3mm,
+            draw=black,
+            very thick,
+            path picture={
+                    \fill[black] (path picture bounding box.west)
+                    rectangle (path picture bounding box.south east);
+                }
+        },
+}

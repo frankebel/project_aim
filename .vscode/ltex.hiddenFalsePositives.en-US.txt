@@ -1,0 +1,36 @@
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qwritten by\\E$"}
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qcompat=1.18\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q[prefix=tikz/] compat=1.18\\E$"}
+{"rule":"EN_UNPAIRED_BRACKETS","sentence":"^\\QFor creation operators the adjoint can be taken \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q c[k]'.\\E$"}
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qwith index determinant and associated value amplitude.\\E$"}
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qcan be used.\\E$"}
+{"rule":"POSSESSIVE_APOSTROPHE","sentence":"^\\QThe first part contains the more complicated single and double particle interactions and should keep the existing Fermions infrastructure using bit manipulation.\\E$"}
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qexisting code can be used with minimal changes.\\E$"}
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qparameter variable value Coulomb interaction \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q 4.0 impurity energy level \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q -2.0 bath energy levels \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q 0.0 hybridization \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q -1.0 bath hopping \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q -1.0\\E$"}
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qp̆ \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"COMMA_PARENTHESIS_WHITESPACE","sentence":"^\\Q[ fixed zerofill, precision=2, columns/bath sites/.style=precision=0, ]../data/bitsize_slaterdet.csv\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q[ fixed zerofill, precision=2, columns/bath sites/.style=precision=0, ]../data/bitsize_slaterdet.csv\\E$"}
+{"rule":"DOUBLE_PUNCTUATION","sentence":"^\\Q[ fixed zerofill, precision=2, columns/bath sites/.style=precision=0, ]../data/bitsize_slaterdet.csv\\E$"}
+{"rule":"A_BIT","sentence":"^\\QLeft part should use bit representation, while the right side should use matrix-vector operations.\\E$"}
+{"rule":"POSSESSIVE_APOSTROPHE","sentence":"^\\QOne can assume that in the natural orbitals representation the excitations inside the chains are limited.\\E$"}
+{"rule":"A_BIT","sentence":"^\\QLeft part should use bit representation, while the right side should be expressed as a vector.\\E$"}
+{"rule":"POSSESSIVE_APOSTROPHE","sentence":"^\\QOne can assume that in the natural orbitals representation the excitations inside these chains are therefore limited.\\E$"}
+{"rule":"A_BIT","sentence":"^\\QLeft part (including impurity) should use bit representation, while the right side (chains) should be expressed as a vector.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QThe matrix-vector multiplication between \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q and \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q is implemented inside the function _vectorop!() using five-argument mul!().\\E$"}
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qenglish DejaVu Sans Mono[Scale=MatchLowercase]\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Qenglish DejaVu Sans Mono[Scale=MatchLowercase]\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q[prefix=tikz/] compat=1.18 col sep=comma every head row/.style=before row=, after row=, every last row/.style=after row=\\E$"}
+{"rule":"PCT_SINGULAR_NOUN_PLURAL_VERB_AGREEMENT","sentence":"^\\QTo characterize the implementation of the hybrid representation, a starting wave function the tridiagonal form (\\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q) in particle-hole symmetry (PHS) was created using the parameters listed in \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"MISSING_GENITIVE","sentence":"^\\QAnderson impurity model.\\E$"}
+{"rule":"TO_BATH","sentence":"^\\QThis impurity is coupled by a hybridization \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q to bath sites with energies \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q as illustrated in \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QThis Hamiltonian is converted to the natural orbital representation and the starting state is half-filled as shown in \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q p̆ \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q(subfigure)\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QNewCMMath-Book\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q[prefix=tikz/] compat=1.18 groupplots colorbrewer cycle list/Set1, cycle multiindex* list= mark list* Set1 , col sep=comma every head row/.style=before row=, after row=, every last row/.style=after row=\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q[prefix=tikz/] compat=1.18 groupplots colorbrewer cycle list/Set1, cycle multiindex* list= mark list* Set1, col sep=comma every head row/.style=before row=, after row=, every last row/.style=after row=\\E$"}
+{"rule":"TO_NON_BASE","sentence":"^\\QThe BR with 101 bath sites restricted to singles plateaus between iteration 50; 60.\\E$"}
+{"rule":"EN_UNPAIRED_BRACKETS","sentence":"^\\Q10.1016/0010-4655(95)00108-r\\E$"}
+{"rule":"TO_BATH","sentence":"^\\QThis impurity is coupled by a hybridization \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q to bath sites with energies \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q as illustrated in \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QWe can define the interface as: terms() returning the dictionary, nslater() returning \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, nfilled() returning \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, nempty() returning \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, excitation() returning \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, nvector() returning \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, nsites() returning \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QWe could group the spin-sites inside the SD either by spin p̆ṇ \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, or by site \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QThe configuration interaction method as an Anderson impurity problem solver (subfigure)\\E$"}

@@ -1,0 +1,39 @@
+%! TeX root = ../thesis.tex
+\begin{tikzpicture}
+    \begin{groupplot}[
+            group style={
+                    group size=2 by 1,
+                    horizontal sep=15mm,
+                    ylabels at=edge left,
+                },
+            width=0.45\textwidth,
+            ymode=log,
+            xlabel={$n$ (iteration)},
+            ylabel={Improvement},
+            xmin=-10,
+            xmax=110,
+        ]
+
+        \nextgroupplot[
+            legend style={
+                    at={(0.95, 0.05)},
+                    anchor=south east
+                },
+            legend cell align={left},
+        ]
+        \addplot+[only marks]
+        table [x=i, y=1_301] {./data/wave_function_improvement.csv};
+        \addlegendentry{$n_b=301$}
+        \addplot+[only marks]
+        table [x=i, y=1_101] {./data/wave_function_improvement.csv};
+        \addlegendentry{$n_b=101$}
+
+        \nextgroupplot
+        \addplot+[only marks]
+        table [x=i, y=2_301] {./data/wave_function_improvement.csv};
+        \addplot+[only marks]
+        table [x=i, y=2_101] {./data/wave_function_improvement.csv};
+        % unity
+        \draw[dashed] (axis cs:-10,1) -- (axis cs:110,1);
+    \end{groupplot}
+\end{tikzpicture}

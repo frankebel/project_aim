@@ -1,0 +1,79 @@
+%! TeX root = ../thesis.tex
+\begin{tikzpicture}
+    \begin{groupplot}[
+            group style={
+                    group size=2 by 1,
+                    horizontal sep=15mm,
+                    ylabels at=edge left,
+                },
+            width=0.45\textwidth,
+            xlabel={$n_b$ (bath sites)},
+            ylabel={$t$ (\unit{\second})},
+            xtick={100,200,...,300},
+            minor xtick={50,150,...,250},
+            xminorticks=true,
+            legend style={
+                    at={(0.05, 0.95)},
+                    anchor=north west,
+                },
+            legend cell align={left},
+        ]
+
+        \nextgroupplot[
+            xmode=log,
+            ymode=log,
+            xticklabel=\pgfmathparse{exp(\tick)}\pgfmathprintnumber{\pgfmathresult},
+            xticklabel style={
+                    /pgf/number format/fixed,
+                    /pgf/number format/precision=0,
+                },
+        ]
+        \addplot+[only marks]
+        table [x=bath_sites, y=WF] {./data/hamiltonian_creation.csv};
+        \addplot+[only marks]
+        table [x=bath_sites, y=CIWF2] {./data/hamiltonian_creation.csv};
+        \addplot+[only marks]
+        table [x=bath_sites, y=CIWF1] {./data/hamiltonian_creation.csv};
+        \addplot
+        [
+            domain=50:300,
+            samples=10,
+            dashed,
+        ]
+        {6e-9 * x^3}
+        coordinate [pos=0.9] (cubic);
+        \node[inner sep=6mm, left] at (cubic.west) {$O(n_b^3)$};
+        \addplot
+        [
+            domain=50:300,
+            samples=10,
+            dashed,
+        ]
+        {2.5e-7 * x^2}
+        coordinate [pos=0.9] (quadratic);
+        \node[inner sep=4mm, below] at (quadratic.south) {$O(n_b^2)$};
+        \legend{
+            BR,
+            HR-2,
+            HR-1,
+        };
+
+        \nextgroupplot
+        \pgfplotsset{cycle list shift=2}
+        \addplot+
+        [
+            only marks,
+            forget plot,
+        ]
+        table [x=bath_sites, y=CIWF1] {./data/hamiltonian_creation.csv};
+        \addplot
+        [
+            domain=50:300,
+            samples=10,
+            dashed,
+        ]
+        {1.59e-7 * x + 5.6e-5}
+        coordinate [pos=0.9] (linear);
+        \node[inner sep=4mm, left] at (linear.west) {$O(n_b)$};
+    \end{groupplot}
+\end{tikzpicture}
